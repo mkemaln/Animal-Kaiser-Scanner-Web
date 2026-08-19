@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AK Card Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #121212;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #reader {
+      width: 100%;
+      max-width: 420px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid #333;
+    }
+    #status {
+      margin-top: 16px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+      background: #1e1e1e;
+    }
+    .success { color: #4ade80; border: 1px solid #22c55e; }
+    .error { color: #f87171; border: 1px solid #ef4444; }
+  </style>
+</head>
+<body>
+  <h2>Animal Kaiser Card Scanner</h2>
+  <div id="reader"></div>
+  <div id="status">Point camera at card barcode</div>
+
+  <script>
+    let isProcessing = false;
+    const statusDiv = document.getElementById('status');
+
+    async function sendBarcode(code) {
+      if (isProcessing) return;
+      isProcessing = true;
+
+      statusDiv.className = '';
+      statusDiv.innerText = `Sending barcode: ${code}...`;
+
+      try {
+        const res = await fetch('/api/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ barcode: code })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          statusDiv.className = 'success';
+          statusDiv.innerText = `Card ${code} recognized!`;
+        } else {
+          statusDiv.className = 'error';
+          statusDiv.innerText = data.error || 'Failed to send card.';
+        }
+      } catch (err) {
+        statusDiv.className = 'error';
+        statusDiv.innerText = 'Network error reaching server.';
+      } finally {
+        // Cooldown delay so it doesn't spam scan the same card continuously
+        setTimeout(() => {
+          isProcessing = false;
+        }, 2000);
+      }
+    }
+
+    function onScanSuccess(decodedText) {
+      sendBarcode(decodedText);
+    }
+
+    const html5QrcodeScanner = new Html5QrcodeScanner(
+      "reader",
+      { fps: 15, qrbox: { width: 300, height: 150 } },
+      false
+    );
+    html5QrcodeScanner.render(onScanSuccess);
+  </script>
+</body>
+</html>
