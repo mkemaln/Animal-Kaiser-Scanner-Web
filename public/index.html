@@ -1,94 +1,259 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AK Card Scanner</title>
+  <title>AK Controller & Card Selector</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      margin: 0;
-      padding: 16px;
-      background: #121212;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    :root {
+      --bg: #121214;
+      --card-bg: #1e1e24;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --border: #2d2d38;
+      --text: #f3f4f6;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warning: #f59e0b;
     }
-    #reader {
-      width: 100%;
-      max-width: 420px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 2px solid #333;
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 90px; }
+
+    /* Top Navigation Tabs */
+    .nav-tabs {
+      display: flex; position: sticky; top: 0; background: #18181c; border-bottom: 1px solid var(--border); z-index: 100;
     }
-    #status {
-      margin-top: 16px;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-weight: bold;
-      text-align: center;
-      width: 90%;
-      max-width: 400px;
-      background: #1e1e1e;
+    .tab-btn {
+      flex: 1; padding: 14px; text-align: center; background: none; border: none; color: #9ca3af; font-weight: 600; font-size: 15px; cursor: pointer;
     }
-    .success { color: #4ade80; border: 1px solid #22c55e; }
-    .error { color: #f87171; border: 1px solid #ef4444; }
+    .tab-btn.active { color: #fff; border-bottom: 3px solid var(--accent); }
+
+    .view-content { display: none; padding: 16px; max-width: 1100px; margin: 0 auto; }
+    .view-content.active { display: block; }
+
+    /* Filter Controls */
+    .filters {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px;
+    }
+    .filters input, .filters select {
+      background: var(--card-bg); border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 8px; font-size: 14px; outline: none;
+    }
+
+    /* Cards Grid */
+    .cards-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px;
+    }
+    .card-item {
+      background: var(--card-bg); border: 2px solid var(--border); border-radius: 10px; padding: 8px; cursor: pointer; transition: transform 0.1s, border-color 0.1s; position: relative; display: flex; flex-direction: column; align-items: center;
+    }
+    .card-item img {
+      width: 100%; height: 160px; object-fit: contain; border-radius: 6px; background: #0b0b0e;
+    }
+    .card-item .card-name { font-size: 12px; font-weight: 600; margin-top: 8px; text-align: center; line-height: 1.3; }
+    .card-item .card-ver { font-size: 10px; color: #9ca3af; margin-top: 4px; }
+    
+    .card-item.selected { border-color: var(--accent); background: #1c2742; }
+    .card-item.no-code { opacity: 0.65; }
+    .badge-no-code {
+      position: absolute; top: 6px; right: 6px; background: var(--danger); font-size: 9px; font-weight: bold; padding: 2px 6px; border-radius: 4px;
+    }
+
+    /* Bottom Action Bar */
+    .bottom-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; background: #18181c; border-top: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 100;
+    }
+    .selected-info { font-size: 13px; max-width: 60%; }
+    .btn-send {
+      background: var(--accent); color: #fff; border: none; padding: 12px 24px; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer;
+    }
+    .btn-send:disabled { background: #374151; color: #6b7280; cursor: not-allowed; }
+
+    /* Camera Scanner Tab */
+    #reader { width: 100%; max-width: 400px; margin: 0 auto; border-radius: 8px; overflow: hidden; }
+    #cam-status { margin-top: 12px; text-align: center; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h2>Animal Kaiser Card Scanner</h2>
-  <div id="reader"></div>
-  <div id="status">Point camera at card barcode</div>
+
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('db-view')">Card Database</button>
+    <button class="tab-btn" onclick="switchTab('cam-view')">Camera Scanner</button>
+  </div>
+
+  <!-- DATABASE VIEW -->
+  <div id="db-view" class="view-content active">
+    <div class="filters">
+      <input type="text" id="search-input" placeholder="Search card name..." oninput="applyFilters()" />
+      <select id="filter-version" onchange="applyFilters()">
+        <option value="">All Versions</option>
+      </select>
+      <select id="filter-type" onchange="applyFilters()">
+        <option value="">All Types</option>
+      </select>
+      <select id="filter-code-avail" onchange="applyFilters()">
+        <option value="all">All Cards</option>
+        <option value="available">Code Available</option>
+        <option value="missing">Code Missing</option>
+      </select>
+    </div>
+
+    <div id="cards-container" class="cards-grid"></div>
+  </div>
+
+  <!-- CAMERA SCANNER VIEW -->
+  <div id="cam-view" class="view-content">
+    <div id="reader"></div>
+    <div id="cam-status">Point at card barcode</div>
+  </div>
+
+  <!-- FIXED ACTION BAR FOR SENDING SELECTION -->
+  <div class="bottom-bar" id="action-bar">
+    <div class="selected-info" id="selected-card-label">No card selected</div>
+    <button class="btn-send" id="btn-send" disabled onclick="sendSelectedCard()">Send to Game</button>
+  </div>
 
   <script>
-    let isProcessing = false;
-    const statusDiv = document.getElementById('status');
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js').catch(console.error);
+    }
+
+    let cardsData = [];
+    let selectedCard = null;
+    let qrScanner = null;
+
+    async function init() {
+      const res = await fetch('/cards.json');
+      cardsData = await res.json();
+      populateDropdowns();
+      applyFilters();
+    }
+
+    function populateDropdowns() {
+      const versions = [...new Set(cardsData.map(c => c.version).filter(Boolean))];
+      const types = [...new Set(cardsData.map(c => c.type).filter(Boolean))];
+
+      const verSelect = document.getElementById('filter-version');
+      versions.forEach(v => verSelect.innerHTML += `<option value="${v}">${v}</option>`);
+
+      const typeSelect = document.getElementById('filter-type');
+      types.forEach(t => typeSelect.innerHTML += `<option value="${t}">${t}</option>`);
+    }
+
+    function applyFilters() {
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const version = document.getElementById('filter-version').value;
+      const type = document.getElementById('filter-type').value;
+      const avail = document.getElementById('filter-code-avail').value;
+
+      const filtered = cardsData.filter(card => {
+        const matchesName = card.name.toLowerCase().includes(search);
+        const matchesVer = !version || card.version === version;
+        const matchesType = !type || card.type === type;
+        const hasCode = Boolean(card.code && card.code.trim());
+        const matchesAvail = avail === 'all' || (avail === 'available' && hasCode) || (avail === 'missing' && !hasCode);
+
+        return matchesName && matchesVer && matchesType && matchesAvail;
+      });
+
+      renderCards(filtered);
+    }
+
+    function renderCards(cards) {
+      const container = document.getElementById('cards-container');
+      container.innerHTML = '';
+
+      cards.forEach(card => {
+        const hasCode = Boolean(card.code && card.code.trim());
+        const isSelected = selectedCard && selectedCard.name === card.name;
+
+        const div = document.createElement('div');
+        div.className = `card-item ${isSelected ? 'selected' : ''} ${!hasCode ? 'no-code' : ''}`;
+        div.onclick = () => selectCard(card);
+
+        div.innerHTML = `
+          ${!hasCode ? '<span class="badge-no-code">No Code</span>' : ''}
+          <img src="${card.image}" loading="lazy" alt="${card.name}">
+          <div class="card-name">${card.name}</div>
+          <div class="card-ver">${card.version || ''}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function selectCard(card) {
+      selectedCard = card;
+      const label = document.getElementById('selected-card-label');
+      const sendBtn = document.getElementById('btn-send');
+
+      const hasCode = Boolean(card.code && card.code.trim());
+      if (hasCode) {
+        label.innerHTML = `<strong>${card.name}</strong><br><span style="color:#22c55e;">Ready to Scan</span>`;
+        sendBtn.disabled = false;
+      } else {
+        label.innerHTML = `<strong>${card.name}</strong><br><span style="color:#ef4444;">No barcode available</span>`;
+        sendBtn.disabled = true;
+      }
+
+      applyFilters();
+    }
 
     async function sendBarcode(code) {
-      if (isProcessing) return;
-      isProcessing = true;
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ barcode: code })
+      });
+      return res.json();
+    }
 
-      statusDiv.className = '';
-      statusDiv.innerText = `Sending barcode: ${code}...`;
+    async function sendSelectedCard() {
+      if (!selectedCard || !selectedCard.code) return;
+      const btn = document.getElementById('btn-send');
+      btn.innerText = 'Sending...';
+      btn.disabled = true;
 
       try {
-        const res = await fetch('/api/scan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ barcode: code })
-        });
-
-        const data = await res.json();
-        if (res.ok) {
-          statusDiv.className = 'success';
-          statusDiv.innerText = `Card ${code} recognized!`;
-        } else {
-          statusDiv.className = 'error';
-          statusDiv.innerText = data.error || 'Failed to send card.';
-        }
-      } catch (err) {
-        statusDiv.className = 'error';
-        statusDiv.innerText = 'Network error reaching server.';
+        const result = await sendBarcode(selectedCard.code);
+        btn.innerText = result.success ? 'Card Sent!' : 'Failed';
+      } catch {
+        btn.innerText = 'Error';
       } finally {
-        // Cooldown delay so it doesn't spam scan the same card continuously
         setTimeout(() => {
-          isProcessing = false;
-        }, 2000);
+          btn.innerText = 'Send to Game';
+          btn.disabled = false;
+        }, 1500);
       }
     }
 
-    function onScanSuccess(decodedText) {
-      sendBarcode(decodedText);
+    function switchTab(viewId) {
+      document.querySelectorAll('.view-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+
+      if (viewId === 'db-view') {
+        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+        document.getElementById('action-bar').style.display = 'flex';
+        if (qrScanner) { qrScanner.clear(); qrScanner = null; }
+      } else {
+        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+        document.getElementById('action-bar').style.display = 'none';
+        startCameraScanner();
+      }
     }
 
-    const html5QrcodeScanner = new Html5QrcodeScanner(
-      "reader",
-      { fps: 15, qrbox: { width: 300, height: 150 } },
-      false
-    );
-    html5QrcodeScanner.render(onScanSuccess);
+    function startCameraScanner() {
+      if (qrScanner) return;
+      qrScanner = new Html5QrcodeScanner("reader", { fps: 15, qrbox: { width: 280, height: 160 } }, false);
+      qrScanner.render(async (text) => {
+        const status = document.getElementById('cam-status');
+        status.innerText = `Sending: ${text}...`;
+        const res = await sendBarcode(text);
+        status.innerText = res.success ? `Success: ${text}` : 'Rejected';
+      });
+    }
+
+    init();
   </script>
 </body>
 </html>
