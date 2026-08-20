@@ -1,0 +1,132 @@
+[
+  {
+    "id": "1787186437487",
+    "name": "Galleon",
+    "createdAt": "2026-08-20T00:40:37.487Z",
+    "animal": {
+      "version": "Evo 1",
+      "type": "Animal Card",
+      "name": "A-108 - Galleon",
+      "code": "bn4pYw\\Z",
+      "image": "https://i0.wp.com/www.arcadegamecards.com/wp-content/uploads/2020/12/animalkaiserevolution1galleona-108efront.jpg?fit=300%2C445&ssl=1"
+    },
+    "strong": {
+      "version": "Evo 3",
+      "type": "Strong Card",
+      "name": "S-104 - Ninja Fighters",
+      "code": "bn3Ti>Gz",
+      "image": "https://i0.wp.com/www.arcadegamecards.com/wp-content/uploads/2020/12/animalkaiserevolution3ninjafighterss-104efront.jpg?fit=300%2C456&ssl=1"
+    },
+    "miracle": {
+      "version": "Evo 1",
+      "type": "Miracle Card",
+      "name": "M-081 - Giant Meteor",
+      "code": "bn2tsA\\?",
+      "image": "https://i0.wp.com/www.arcadegamecards.com/wp-content/uploads/2020/12/animalkaiserevolution1giantmeteorm-081efront.jpg?fit=300%2C442&ssl=1"
+    }
+  },
+  {
+    "id": "1787200525007",
+    "name": "110  Deck",
+    "createdAt": "2026-08-20T04:35:25.007Z",
+    "animal": {
+      "version": "Evo 2",
+      "type": "Animal Card",
+      "name": "A-110 - Death Scorch",
+      "code": "bn5PUX}n",
+      "image": "https://i0.wp.com/www.arcadegamecards.com/wp-content/uploads/2020/12/animalkaiserevolution2deathscorcha-110efront.jpg?fit=300%2C438&ssl=1"
+    },
+    "strong": {
+      "version": "Evo 6",
+      "type": "Strong Card",
+      "name": "S-133 - Destructive Desire",
+      "code": "bn28r[b8",
+      "image": "https://i0.wp.com/www.arcadegamecards.com/wp-content/uploads/2020/12/animalkaiserevolution6destructivedesires-133efront.jpg?fit=300%2C446&ssl=1"
+    },
+    "miracle": {
+      "version": "Evo 8 DX",
+      "type": "Miracle Card",
+      "name": "M-116 - Black Hole",
+      "code": "bn60^@K-",
+      "image": "https://i0.wp.com/www.arcadegamecards.com/wp-content/uploads/2020/12/animalkaiserevolution8dxblackholem-116efront.jpg?fit=300%2C440&ssl=1"
+    }
+  },
+  {
+    "id": "1787200575083",
+    "name": "166  Deck",
+    "createdAt": "2026-08-20T04:36:15.083Z",
+    "animal": {
+      "version": "Evo 6",
+      "type": "Animal Card",
+      "name": "A-166 - Emperor Vertus",
+      "code": "bn0<z9~H",
+      "image": "https://i0.wp.com/www.arcadegamecards.com/wp-content/uploads/2020/12/animalkaiserevolution6emperorvertusa-166efront.jpg?fit=300%2C440&ssl=1"
+    },
+    "strong": {
+      "version": "Evo 6",
+      "type": "Strong Card",
+      "name": "S-133 - Destructive Desire",
+      "code": "bn28r[b8",
+      "image": "https://i0.wp.com/www.arcadegamecards.com/wp-content/uploads/2020/12/animalkaiserevolution6destructivedesires-133efront.jpg?fit=300%2C446&ssl=1"
+    },
+    "miracle": {
+      "version": "Evo 1",
+      "type": "Miracle Card",
+      "name": "M-080 - Aligned Planets",
+      "code": "bn28w`;*",
+      "image": "https://i0.wp.com/www.arcadegamecards.com/wp-content/uploads/2020/12/animalkaiserevolution1alignedplanetsm-080efront.jpg?fit=300%2C446&ssl=1"
+    }
+  },
+  {
+    "id": "1787224420321",
+    "name": "145  Deck",
+    "createdAt": "2026-08-20T11:13:40.321Z",
+    "animal": {
+      "version": "Evo 4",
+      "type": "Animal Card",
+      "name": "A-145 - Zangetsu",
+      "code": "bn3Tcxkj",
+      "image": "https://i0.wp.com/www.arcadegamecards.com/wp-content/uploads/2020/12/animalkaiserevolution4zangetsua-145efront.jpg?fit=300%2C445&ssl=1"
+    },
+    "strong": {
+      "version": "Evo 1",
+      "type": "Strong Card",
+      "name": "S-063 - Lone Warrior",
+      "code": "bn5P]=Me",
+      "image": "https://i0.wp.com/www.arcadegamecards.com/wp-content/uploads/2020/12/animalkaiserevolution1lonewarriors-063efront.jpg?fit=300%2C440&ssl=1"
+    },
+    "miracle": {
+      "version": "Evo 4",
+      "type": "Miracle Card",
+      "name": "M-127 - Crashing Moon",
+      "code": "bn2tt@ZJ",
+      "image": "https://i0.wp.com/www.arcadegamecards.com/wp-content/uploads/2020/12/animalkaiserevolution4crashingmoonm-127efront.jpg?fit=300%2C446&ssl=1"
+    }
+  },
+  {
+    "id": "1787224583416",
+    "name": "112  Deck",
+    "createdAt": "2026-08-20T11:16:23.416Z",
+    "animal": {
+      "version": "Evo 2",
+      "type": "Animal Card",
+      "name": "A-112 - Master Icarus",
+      "code": "bn1Xowkw",
+      "image": "https://i0.wp.com/www.arcadegamecards.com/wp-content/uploads/2020/12/animalkaiserevolution2mastericarusa-112efront.jpg?fit=300%2C440&ssl=1"
+    },
+    "strong": {
+      "version": "Evo 3",
+      "type": "Strong Card",
+      "name": "S-105 - Royal Lineage",
+      "code": "bn44d{i2",
+      "image": "https://i0.wp.com/www.arcadegamecards.com/wp-content/uploads/2020/12/animalkaiserevolution3royallineages-105efront.jpg?fit=300%2C443&ssl=1"
+    },
+    "miracle": {
+      "version": "Evo 6",
+      "type": "Miracle Card",
+      "name": "M-148 - Alien Egg Gold",
+      "code": "bn60^~Ew",
+      "image": "https://i0.wp.com/www.arcadegamecards.com/wp-content/uploads/2020/12/animalkaiserevolution6alienegggoldm-148efront.jpg?fit=300%2C446&ssl=1"
+    }
+  }
+]

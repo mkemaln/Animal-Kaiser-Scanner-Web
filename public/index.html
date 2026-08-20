@@ -3,94 +3,143 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AK Controller & Card Selector</title>
+  <title>AK Controller & Deck Studio</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     :root {
       --bg: #121214;
-      --card-bg: #1e1e24;
+      --card-bg: #1c1c24;
       --accent: #2563eb;
       --accent-hover: #1d4ed8;
-      --border: #2d2d38;
+      --border: #2d2d3a;
       --text: #f3f4f6;
       --danger: #ef4444;
       --success: #22c55e;
       --warning: #f59e0b;
+      --slot-bg: #15151c;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding-bottom: 90px; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 120px; }
 
-    /* Top Navigation Tabs */
+    /* Navigation Bar */
     .nav-tabs {
-      display: flex; position: sticky; top: 0; background: #18181c; border-bottom: 1px solid var(--border); z-index: 100;
+      display: flex; position: sticky; top: 0; background: #16161b; border-bottom: 1px solid var(--border); z-index: 100;
     }
     .tab-btn {
-      flex: 1; padding: 14px; text-align: center; background: none; border: none; color: #9ca3af; font-weight: 600; font-size: 15px; cursor: pointer;
+      flex: 1; padding: 14px 8px; text-align: center; background: none; border: none; color: #9ca3af; font-weight: 600; font-size: 13px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px;
     }
     .tab-btn.active { color: #fff; border-bottom: 3px solid var(--accent); }
 
-    .view-content { display: none; padding: 16px; max-width: 1100px; margin: 0 auto; }
+    .view-content { display: none; padding: 14px; max-width: 1100px; margin: 0 auto; }
     .view-content.active { display: block; }
 
-    /* Filter Controls */
-    .filters {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px;
+    /* Builder Dock (Persistent in Database Tab) */
+    .deck-builder-bar {
+      background: #181822; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px;
     }
+    .deck-builder-header { display: flex; justify-content: space-between; align-items: center; }
+    .deck-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .slot {
+      background: var(--slot-bg); border: 1px dashed #4b5563; border-radius: 8px; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 4px; text-align: center;
+    }
+    .slot.filled { border: 1px solid var(--accent); background: #1a2234; }
+    .slot img { height: 60px; width: 100%; object-fit: contain; }
+    .slot .slot-title { font-size: 10px; color: #9ca3af; font-weight: bold; }
+    .slot .slot-name { font-size: 10px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .slot-clear { position: absolute; top: 2px; right: 4px; background: none; border: none; color: var(--danger); font-weight: bold; font-size: 14px; cursor: pointer; }
+    .slot.filled.selected {
+      border: 2px solid var(--accent);
+      background: #1c2742;
+    }
+
+    /* Filters */
+    .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 14px; }
     .filters input, .filters select {
-      background: var(--card-bg); border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 8px; font-size: 14px; outline: none;
+      background: var(--card-bg); border: 1px solid var(--border); color: #fff; padding: 8px; border-radius: 6px; font-size: 13px; outline: none;
     }
 
     /* Cards Grid */
-    .cards-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px;
-    }
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
     .card-item {
-      background: var(--card-bg); border: 2px solid var(--border); border-radius: 10px; padding: 8px; cursor: pointer; transition: transform 0.1s, border-color 0.1s; position: relative; display: flex; flex-direction: column; align-items: center;
+      background: var(--card-bg); border: 2px solid var(--border); border-radius: 8px; padding: 6px; cursor: pointer; position: relative; display: flex; flex-direction: column; align-items: center;
     }
-    .card-item img {
-      width: 100%; height: 160px; object-fit: contain; border-radius: 6px; background: #0b0b0e;
-    }
-    .card-item .card-name { font-size: 12px; font-weight: 600; margin-top: 8px; text-align: center; line-height: 1.3; }
-    .card-item .card-ver { font-size: 10px; color: #9ca3af; margin-top: 4px; }
-    
-    .card-item.selected { border-color: var(--accent); background: #1c2742; }
-    .card-item.no-code { opacity: 0.65; }
+    .card-item img { width: 100%; height: 140px; object-fit: contain; border-radius: 4px; background: #0c0c0e; }
+    .card-item .card-name { font-size: 11px; font-weight: 600; margin-top: 6px; text-align: center; line-height: 1.2; }
+    .card-item .card-type { font-size: 9px; color: #38bdf8; margin-top: 2px; }
+    .card-item.selected { border-color: var(--accent); background: #1c263c; }
+    .card-item.no-code { opacity: 0.55; }
     .badge-no-code {
-      position: absolute; top: 6px; right: 6px; background: var(--danger); font-size: 9px; font-weight: bold; padding: 2px 6px; border-radius: 4px;
+      position: absolute; top: 4px; right: 4px; background: var(--danger); font-size: 8px; font-weight: bold; padding: 2px 4px; border-radius: 4px;
     }
 
-    /* Bottom Action Bar */
+    /* Deck Bank Cards */
+    .deck-card-list { display: flex; flex-direction: column; gap: 14px; }
+    .deck-entry {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .deck-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 15px; }
+    .deck-cards-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+    /* Fixed Bottom Action Dock */
     .bottom-bar {
-      position: fixed; bottom: 0; left: 0; right: 0; background: #18181c; border-top: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 100;
+      position: fixed; bottom: 0; left: 0; right: 0; background: #16161b; border-top: 1px solid var(--border); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; z-index: 100;
     }
-    .selected-info { font-size: 13px; max-width: 60%; }
-    .btn-send {
-      background: var(--accent); color: #fff; border: none; padding: 12px 24px; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer;
+    .action-btns { display: flex; gap: 8px; }
+    .btn {
+      border: none; padding: 10px 14px; font-size: 13px; font-weight: bold; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;
     }
-    .btn-send:disabled { background: #374151; color: #6b7280; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: #374151; color: #fff; }
+    .btn-success { background: var(--success); color: #000; }
+    .btn-danger { background: var(--danger); color: #fff; padding: 6px 10px; font-size: 11px; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* Camera Scanner Tab */
-    #reader { width: 100%; max-width: 400px; margin: 0 auto; border-radius: 8px; overflow: hidden; }
-    #cam-status { margin-top: 12px; text-align: center; font-weight: bold; }
+    /* Camera Scanner */
+    #reader { width: 100%; max-width: 380px; margin: 0 auto; border-radius: 8px; overflow: hidden; }
   </style>
 </head>
 <body>
 
+  <!-- Top Navigation Tabs -->
   <div class="nav-tabs">
     <button class="tab-btn active" onclick="switchTab('db-view')">Card Database</button>
-    <button class="tab-btn" onclick="switchTab('cam-view')">Camera Scanner</button>
+    <button class="tab-btn" onclick="switchTab('decks-view')">Deck Bank</button>
+    <button class="tab-btn" onclick="switchTab('cam-view')">Camera</button>
   </div>
 
-  <!-- DATABASE VIEW -->
+  <!-- TAB 1: CARD DATABASE & DECK BUILDER DOCK -->
   <div id="db-view" class="view-content active">
+
+    <!-- Active Deck Builder Tray -->
+    <div class="deck-builder-bar">
+      <div class="deck-builder-header">
+        <span style="font-weight: bold; font-size: 13px;">Active Deck Builder</span>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="randomizeDeck()">🎲 Randomize</button>
+          <button class="btn btn-success" id="btn-save-deck" style="padding: 4px 10px; font-size: 11px;" disabled onclick="saveCurrentDeck()">Save Deck</button>
+        </div>
+      </div>
+      <div class="deck-slots">
+        <div class="slot" id="slot-animal" onclick="selectDeckSlotCard('animal' | 'strong' | 'miracle')">
+          <span class="slot-title">ANIMAL</span>
+          <span class="slot-name" id="name-animal">Empty</span>
+        </div>
+        <div class="slot" id="slot-strong" onclick="selectDeckSlotCard('animal' | 'strong' | 'miracle')">
+          <span class="slot-title">STRONG</span>
+          <span class="slot-name" id="name-strong">Empty</span>
+        </div>
+        <div class="slot" id="slot-miracle" onclick="selectDeckSlotCard('animal' | 'strong' | 'miracle')">
+          <span class="slot-title">MIRACLE</span>
+          <span class="slot-name" id="name-miracle">Empty</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
     <div class="filters">
-      <input type="text" id="search-input" placeholder="Search card name..." oninput="applyFilters()" />
-      <select id="filter-version" onchange="applyFilters()">
-        <option value="">All Versions</option>
-      </select>
-      <select id="filter-type" onchange="applyFilters()">
-        <option value="">All Types</option>
-      </select>
+      <input type="text" id="search-input" placeholder="Search name..." oninput="applyFilters()" />
+      <select id="filter-version" onchange="applyFilters()"><option value="">All Versions</option></select>
+      <select id="filter-type" onchange="applyFilters()"><option value="">All Types</option></select>
       <select id="filter-code-avail" onchange="applyFilters()">
         <option value="all">All Cards</option>
         <option value="available">Code Available</option>
@@ -101,43 +150,60 @@
     <div id="cards-container" class="cards-grid"></div>
   </div>
 
-  <!-- CAMERA SCANNER VIEW -->
-  <div id="cam-view" class="view-content">
-    <div id="reader"></div>
-    <div id="cam-status">Point at card barcode</div>
+  <!-- TAB 2: DECK DATA BANK -->
+  <div id="decks-view" class="view-content">
+    <div id="decks-list" class="deck-card-list"></div>
   </div>
 
-  <!-- FIXED ACTION BAR FOR SENDING SELECTION -->
-  <div class="bottom-bar" id="action-bar">
-    <div class="selected-info" id="selected-card-label">No card selected</div>
-    <button class="btn-send" id="btn-send" disabled onclick="sendSelectedCard()">Send to Game</button>
+  <!-- TAB 3: CAMERA SCANNER -->
+  <div id="cam-view" class="view-content">
+    <div id="reader"></div>
+    <div id="cam-status" style="text-align:center; margin-top:10px; font-weight:bold;">Point at card barcode</div>
+  </div>
+
+  <!-- FLOATING ACTION CONTROLLER DOCK -->
+  <div class="bottom-bar" id="action-dock">
+    <div id="selected-card-label" style="font-size: 12px; max-width: 50%;">No card selected</div>
+    <div class="action-btns">
+      <button class="btn btn-secondary" id="btn-add-deck" disabled onclick="addSelectedToDeck()">+ Add to Deck</button>
+      <button class="btn btn-primary" id="btn-send-game" disabled onclick="sendActiveSelection()">Send to Game</button>
+    </div>
   </div>
 
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js').catch(console.error);
-    }
-
     let cardsData = [];
+    let savedDecks = [];
     let selectedCard = null;
     let qrScanner = null;
 
+    let currentDeck = {
+      animal: null,
+      strong: null,
+      miracle: null
+    };
+
     async function init() {
-      const res = await fetch('/cards.json');
-      cardsData = await res.json();
+      const [cardsRes, decksRes] = await Promise.all([
+        fetch('/cards.json'),
+        fetch('/api/decks')
+      ]);
+      cardsData = await cardsRes.json();
+      savedDecks = await decksRes.json();
+
       populateDropdowns();
       applyFilters();
+      renderDeckBank();
     }
 
     function populateDropdowns() {
       const versions = [...new Set(cardsData.map(c => c.version).filter(Boolean))];
       const types = [...new Set(cardsData.map(c => c.type).filter(Boolean))];
 
-      const verSelect = document.getElementById('filter-version');
-      versions.forEach(v => verSelect.innerHTML += `<option value="${v}">${v}</option>`);
+      const vEl = document.getElementById('filter-version');
+      versions.forEach(v => vEl.innerHTML += `<option value="${v}">${v}</option>`);
 
-      const typeSelect = document.getElementById('filter-type');
-      types.forEach(t => typeSelect.innerHTML += `<option value="${t}">${t}</option>`);
+      const tEl = document.getElementById('filter-type');
+      types.forEach(t => tEl.innerHTML += `<option value="${t}">${t}</option>`);
     }
 
     function applyFilters() {
@@ -152,7 +218,6 @@
         const matchesType = !type || card.type === type;
         const hasCode = Boolean(card.code && card.code.trim());
         const matchesAvail = avail === 'all' || (avail === 'available' && hasCode) || (avail === 'missing' && !hasCode);
-
         return matchesName && matchesVer && matchesType && matchesAvail;
       });
 
@@ -175,7 +240,7 @@
           ${!hasCode ? '<span class="badge-no-code">No Code</span>' : ''}
           <img src="${card.image}" loading="lazy" alt="${card.name}">
           <div class="card-name">${card.name}</div>
-          <div class="card-ver">${card.version || ''}</div>
+          <div class="card-type">${card.type || 'Card'}</div>
         `;
         container.appendChild(div);
       });
@@ -184,38 +249,174 @@
     function selectCard(card) {
       selectedCard = card;
       const label = document.getElementById('selected-card-label');
-      const sendBtn = document.getElementById('btn-send');
-
+      const sendBtn = document.getElementById('btn-send-game');
+      const addDeckBtn = document.getElementById('btn-add-deck');
       const hasCode = Boolean(card.code && card.code.trim());
+
       if (hasCode) {
-        label.innerHTML = `<strong>${card.name}</strong><br><span style="color:#22c55e;">Ready to Scan</span>`;
+        label.innerHTML = `<strong>${card.name}</strong><br><span style="color:#22c55e;">Ready to send</span>`;
         sendBtn.disabled = false;
+        addDeckBtn.disabled = false;
       } else {
-        label.innerHTML = `<strong>${card.name}</strong><br><span style="color:#ef4444;">No barcode available</span>`;
+        label.innerHTML = `<strong>${card.name}</strong><br><span style="color:#ef4444;">Code unavailable</span>`;
         sendBtn.disabled = true;
+        addDeckBtn.disabled = true;
       }
 
+      // Refresh both main card grid & deck builder slot highlights
       applyFilters();
+      updateDeckBuilderUI();
     }
 
-    async function sendBarcode(code) {
-      const res = await fetch('/api/scan', {
+    // Auto-detect card slot by type / name
+    function addSelectedToDeck() {
+      if (!selectedCard || !selectedCard.code) return;
+
+      const type = (selectedCard.type || '').toLowerCase();
+      const name = (selectedCard.name || '').toLowerCase();
+
+      if (type.includes('strong') || name.startsWith('s-')) {
+        currentDeck.strong = selectedCard;
+      } else if (type.includes('miracle') || name.startsWith('m-')) {
+        currentDeck.miracle = selectedCard;
+      } else {
+        currentDeck.animal = selectedCard;
+      }
+
+      updateDeckBuilderUI();
+    }
+
+    function selectDeckSlotCard(slotKey) {
+      const card = currentDeck[slotKey];
+      if (card) {
+        selectCard(card);
+      }
+    }
+
+    function updateDeckBuilderUI() {
+      const renderSlot = (slotId, nameId, card, label) => {
+        const slotEl = document.getElementById(slotId);
+        if (card) {
+          const isSelected = selectedCard && selectedCard.name === card.name;
+          slotEl.className = `slot filled ${isSelected ? 'selected' : ''}`;
+          slotEl.style.cursor = 'pointer';
+          
+          // Slot click selects the card for the bottom action dock
+          slotEl.onclick = (e) => {
+            // Prevent triggering selection when clicking the clear button
+            if (e.target.classList.contains('slot-clear')) return;
+            selectDeckSlotCard(label);
+          };
+
+          slotEl.innerHTML = `
+            <button class="slot-clear" onclick="clearSlot('${label}')">×</button>
+            <img src="${card.image}" alt="${card.name}">
+            <div class="slot-name">${card.name}</div>
+          `;
+        } else {
+          slotEl.className = 'slot';
+          slotEl.style.cursor = 'default';
+          slotEl.onclick = null;
+          slotEl.innerHTML = `
+            <span class="slot-title">${label.toUpperCase()}</span>
+            <span class="slot-name">Empty</span>
+          `;
+        }
+      };
+
+      renderSlot('slot-animal', 'name-animal', currentDeck.animal, 'animal');
+      renderSlot('slot-strong', 'name-strong', currentDeck.strong, 'strong');
+      renderSlot('slot-miracle', 'name-miracle', currentDeck.miracle, 'miracle');
+
+      const isComplete = currentDeck.animal && currentDeck.strong && currentDeck.miracle;
+      document.getElementById('btn-save-deck').disabled = !isComplete;
+    }
+
+    function clearSlot(type) {
+      currentDeck[type] = null;
+      updateDeckBuilderUI();
+    }
+
+    async function saveCurrentDeck() {
+      if (!currentDeck.animal || !currentDeck.strong || !currentDeck.miracle) return;
+      const deckName = prompt('Enter a name for this deck:', `${currentDeck.animal.name.split('-')[1] || 'My'} Deck`);
+      if (!deckName) return;
+
+      const res = await fetch('/api/decks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ barcode: code })
+        body: JSON.stringify({
+          name: deckName,
+          animal: currentDeck.animal,
+          strong: currentDeck.strong,
+          miracle: currentDeck.miracle
+        })
       });
-      return res.json();
+
+      if (res.ok) {
+        const data = await res.json();
+        savedDecks.push(data.deck);
+        renderDeckBank();
+        alert('Deck saved successfully!');
+      }
     }
 
-    async function sendSelectedCard() {
+    function renderDeckBank() {
+      const container = document.getElementById('decks-list');
+      if (savedDecks.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:#9ca3af; margin-top:20px;">No saved decks yet. Build one in Card Database!</div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      savedDecks.forEach(deck => {
+        const div = document.createElement('div');
+        div.className = 'deck-entry';
+        div.innerHTML = `
+          <div class="deck-header">
+            <span>${deck.name}</span>
+            <button class="btn btn-danger" onclick="deleteDeck('${deck.id}')">Delete</button>
+          </div>
+          <div class="deck-cards-row">
+            <div class="card-item" onclick="selectCard(${JSON.stringify(deck.animal).replace(/"/g, '&quot;')})">
+              <img src="${deck.animal.image}">
+              <div class="card-name">${deck.animal.name}</div>
+            </div>
+            <div class="card-item" onclick="selectCard(${JSON.stringify(deck.strong).replace(/"/g, '&quot;')})">
+              <img src="${deck.strong.image}">
+              <div class="card-name">${deck.strong.name}</div>
+            </div>
+            <div class="card-item" onclick="selectCard(${JSON.stringify(deck.miracle).replace(/"/g, '&quot;')})">
+              <img src="${deck.miracle.image}">
+              <div class="card-name">${deck.miracle.name}</div>
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function deleteDeck(id) {
+      if (!confirm('Delete this deck?')) return;
+      await fetch(`/api/decks/${id}`, { method: 'DELETE' });
+      savedDecks = savedDecks.filter(d => d.id !== id);
+      renderDeckBank();
+    }
+
+    async function sendActiveSelection() {
       if (!selectedCard || !selectedCard.code) return;
-      const btn = document.getElementById('btn-send');
+      const btn = document.getElementById('btn-send-game');
       btn.innerText = 'Sending...';
       btn.disabled = true;
 
       try {
-        const result = await sendBarcode(selectedCard.code);
-        btn.innerText = result.success ? 'Card Sent!' : 'Failed';
+        const res = await fetch('/api/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ barcode: selectedCard.code })
+        });
+        const data = await res.json();
+        btn.innerText = data.success ? 'Card Sent!' : 'Failed';
       } catch {
         btn.innerText = 'Error';
       } finally {
@@ -233,11 +434,15 @@
 
       if (viewId === 'db-view') {
         document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
-        document.getElementById('action-bar').style.display = 'flex';
+        document.getElementById('action-dock').style.display = 'flex';
+        if (qrScanner) { qrScanner.clear(); qrScanner = null; }
+      } else if (viewId === 'decks-view') {
+        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+        document.getElementById('action-dock').style.display = 'flex';
         if (qrScanner) { qrScanner.clear(); qrScanner = null; }
       } else {
-        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
-        document.getElementById('action-bar').style.display = 'none';
+        document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
+        document.getElementById('action-dock').style.display = 'none';
         startCameraScanner();
       }
     }
@@ -248,9 +453,57 @@
       qrScanner.render(async (text) => {
         const status = document.getElementById('cam-status');
         status.innerText = `Sending: ${text}...`;
-        const res = await sendBarcode(text);
-        status.innerText = res.success ? `Success: ${text}` : 'Rejected';
+        const res = await fetch('/api/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ barcode: text })
+        });
+        const data = await res.json();
+        status.innerText = data.success ? `Success: ${text}` : 'Rejected';
       });
+    }
+
+    function randomizeDeck() {
+      // 1. Filter out cards that do not have an arcade barcode
+      const playableCards = cardsData.filter(c => c.code && c.code.trim().length > 0);
+
+      if (playableCards.length === 0) {
+        alert('No playable cards with valid barcodes found in database.');
+        return;
+      }
+
+      // 2. Separate card pools by category/prefix
+      const animals = playableCards.filter(c => {
+        const type = (c.type || '').toLowerCase();
+        const name = (c.name || '').toLowerCase();
+        return type.includes('animal') || name.startsWith('a-');
+      });
+
+      const strongs = playableCards.filter(c => {
+        const type = (c.type || '').toLowerCase();
+        const name = (c.name || '').toLowerCase();
+        return type.includes('strong') || name.startsWith('s-');
+      });
+
+      const miracles = playableCards.filter(c => {
+        const type = (c.type || '').toLowerCase();
+        const name = (c.name || '').toLowerCase();
+        return type.includes('miracle') || name.startsWith('m-');
+      });
+
+      // Helper to pick random item from array (fallback to any playable card if category pool is empty)
+      const getRandom = (arr) => {
+        const pool = arr.length > 0 ? arr : playableCards;
+        return pool[Math.floor(Math.random() * pool.length)];
+      };
+
+      // 3. Populate slots
+      currentDeck.animal = getRandom(animals);
+      currentDeck.strong = getRandom(strongs);
+      currentDeck.miracle = getRandom(miracles);
+
+      // 4. Update builder UI (enables the Save Deck button without auto-saving)
+      updateDeckBuilderUI();
     }
 
     init();

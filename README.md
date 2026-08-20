@@ -1,5 +1,12 @@
-Animal Kaiser Web Scanner and Card Database for Play! Emulator
+# Animal Kaiser Web Scanner and Card Database for Play! Emulator
 
-- include barcode card scanner
-- include Animal Kaiser Card Database from EVO 1-8
-- run the service locally and access the Website using server IP
+Card scanner and database for Animal Kaiser Evolution and Version edition. Tested with [Play! Playstation 2 Emulator](https://github.com/jpd002/Play-). 
+
+### Feature
+- Barcode card scanner
+- Animal Kaiser Card database from EVO 1-8 (Unfinished)
+- Deck maker with local save
+- Card randomizer
+
+### P.S.
+- add a new card to database by editing ```cards.json``` 
