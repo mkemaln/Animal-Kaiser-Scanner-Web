@@ -1,2 +1,5 @@
 /.env
 /node_modules
+/card_image
+/public/archive-cards.json
+/public/cards.json

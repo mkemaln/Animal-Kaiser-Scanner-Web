@@ -224,6 +224,22 @@
       renderCards(filtered);
     }
 
+    function getCardImageUrl(card) {
+      if (!card) return '';
+      
+      // If card is an object, extract image or name; if it's already a string, use it directly
+      const query = (typeof card === 'object') ? (card.image || card.name) : card;
+      if (!query) return '';
+
+      // If it's an external web URL, load directly
+      if (query.startsWith('http://') || query.startsWith('https://')) {
+        return query;
+      }
+
+      // Otherwise route through the server's image matcher
+      return `/api/images/${encodeURIComponent(query)}`;
+    }
+
     function renderCards(cards) {
       const container = document.getElementById('cards-container');
       container.innerHTML = '';
@@ -238,7 +254,7 @@
 
         div.innerHTML = `
           ${!hasCode ? '<span class="badge-no-code">No Code</span>' : ''}
-          <img src="${card.image}" loading="lazy" alt="${card.name}">
+          <img src="${getCardImageUrl(card)}" loading="lazy" alt="${card.name}">
           <div class="card-name">${card.name}</div>
           <div class="card-type">${card.type || 'Card'}</div>
         `;
@@ -310,7 +326,7 @@
 
           slotEl.innerHTML = `
             <button class="slot-clear" onclick="clearSlot('${label}')">×</button>
-            <img src="${card.image}" alt="${card.name}">
+            <img src="${getCardImageUrl(card)}" alt="${card.name}">
             <div class="slot-name">${card.name}</div>
           `;
         } else {
@@ -379,15 +395,15 @@
           </div>
           <div class="deck-cards-row">
             <div class="card-item" onclick="selectCard(${JSON.stringify(deck.animal).replace(/"/g, '&quot;')})">
-              <img src="${deck.animal.image}">
+              <img src="${getCardImageUrl(deck.animal)}">
               <div class="card-name">${deck.animal.name}</div>
             </div>
             <div class="card-item" onclick="selectCard(${JSON.stringify(deck.strong).replace(/"/g, '&quot;')})">
-              <img src="${deck.strong.image}">
+              <img src="${getCardImageUrl(deck.strong)}">
               <div class="card-name">${deck.strong.name}</div>
             </div>
             <div class="card-item" onclick="selectCard(${JSON.stringify(deck.miracle).replace(/"/g, '&quot;')})">
-              <img src="${deck.miracle.image}">
+              <img src="${getCardImageUrl(deck.miracle)}">
               <div class="card-name">${deck.miracle.name}</div>
             </div>
           </div>

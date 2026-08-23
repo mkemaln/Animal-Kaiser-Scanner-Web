@@ -10,6 +10,9 @@ const PORT = process.env.SERVER_PORT;
 const EMULATOR_URL = process.env.EMULATOR_URL;
 const DECKS_FILE = path.join(__dirname, 'decks.json');
 
+const IMAGES_DIR = path.join(__dirname, '/card_image');
+const SUPPORTED_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.bmp'];
+
 // Ensure decks.json exists
 if (!fs.existsSync(DECKS_FILE)) {
   fs.writeFileSync(DECKS_FILE, JSON.stringify([], null, 2), 'utf-8');
@@ -18,6 +21,90 @@ if (!fs.existsSync(DECKS_FILE)) {
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Helper to normalize any string: lowercase and remove all punctuation/spaces
+function normalizeKey(str) {
+  if (!str) return '';
+  return str.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+// Extract Card ID like "A-071", "S-012", "M-005"
+function extractCardId(str) {
+  if (!str) return '';
+  const match = str.match(/([ASMasm])[-_]?(\d{2,4})/);
+  if (match) {
+    return `${match[1].toLowerCase()}${match[2]}`; // e.g. "a071"
+  }
+  return '';
+}
+
+// In-memory index maps
+const exactMap = new Map();
+const normalizedMap = new Map();
+const cardIdMap = new Map();
+
+function buildImageIndex() {
+  if (!fs.existsSync(IMAGES_DIR)) return;
+  const files = fs.readdirSync(IMAGES_DIR);
+
+  exactMap.clear();
+  normalizedMap.clear();
+  cardIdMap.clear();
+
+  files.forEach(file => {
+    const ext = path.extname(file).toLowerCase();
+    if (!SUPPORTED_EXTS.includes(ext)) return;
+
+    const baseName = path.basename(file, ext);
+    const cleanBase = baseName.replace(/^\d+[-_]/, ''); // Strip "1_", "102_" prefixes
+
+    // 1. Direct lowercase match
+    exactMap.set(baseName.toLowerCase(), file);
+    exactMap.set(cleanBase.toLowerCase(), file);
+
+    // 2. Normalized match (e.g. "a071schneider")
+    normalizedMap.set(normalizeKey(baseName), file);
+    normalizedMap.set(normalizeKey(cleanBase), file);
+
+    // 3. Card ID match (e.g. "a071")
+    const cardId = extractCardId(baseName);
+    if (cardId) {
+      // Prioritize "front" over "back" if multiple exist
+      if (!cardIdMap.has(cardId) || baseName.toLowerCase().includes('front')) {
+        cardIdMap.set(cardId, file);
+      }
+    }
+  });
+
+  console.log(`[*] Indexed ${files.length} card images across ${cardIdMap.size} card IDs.`);
+}
+
+// Build index on boot
+buildImageIndex();
+
+// API endpoint to resolve and stream images
+app.get('/api/images/:query', (req, res) => {
+  const query = req.params.query.trim();
+  const lowerQuery = query.toLowerCase();
+  const normQuery = normalizeKey(query);
+  const cardIdQuery = extractCardId(query);
+
+  // Resolution Hierarchy:
+  // 1. Exact base name match
+  // 2. Normalized alphanumeric match
+  // 3. Extracted Card ID match (A-071 -> a071)
+  let matchedFile = 
+    exactMap.get(lowerQuery) ||
+    normalizedMap.get(normQuery) ||
+    cardIdMap.get(cardIdQuery);
+
+  if (matchedFile) {
+    return res.sendFile(path.join(IMAGES_DIR, matchedFile));
+  }
+
+  // Fallback 1x1 transparent PNG if image doesn't exist
+  return res.status(404).send('Card image not found');
+});
 
 app.post('/api/scan', async (req, res) => {
   const { barcode } = req.body;
