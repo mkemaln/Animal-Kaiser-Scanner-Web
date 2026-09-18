@@ -9,4 +9,4 @@ Card scanner and database for Animal Kaiser Evolution and Version edition. Teste
 - Card randomizer
 
 ### P.S.
-- add a new card to database by editing ```cards.json``` 
+- add a new card to database by editing ```cards.json``` .
